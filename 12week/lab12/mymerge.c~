@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+void merge(FILE *dst, char **buf, int nr_srcfiles, char key)
+{
+	struct stat st;
+	int i;
+	FILE *r;
+	char read[100];
+
+	for(i=0; i<nr_srcfiles; i++){
+		//stat(buf[i], &st);
+		//printf("[%d]: %ld\n",i ,st.st_size);
+
+		r=fopen(buf[i], "r");
+		while(1){
+			fread(read, 1, 1, r);
+			if(feof(r))
+				break;
+			
+			read[0]^=key;
+			fwrite(read, 1, 1, w);
+			//fsize+=strlen(read);
+		}
+	}
+
+}
+
+void myopen(FILE **w, char *a)
+{
+	*w=fopen(a,"wa");
+}
+int main (int argc, char** argv)
+{
+	unsigned char** buf = NULL;
+	int* fsize;
+	int ret, nr_srcfiles, i;
+	char *mybuf[10];
+	char key;
+	FILE *dst;
+
+	/* check arguments */
+	if (argc < 4) {
+		printf ("usage: mymerge mergedfile key srcfile1 srcfile2 ...\n");
+		exit (-1);
+	}
+
+	myopen(&dst, argv[1]);
+
+	nr_srcfiles = argc-3;
+	for(i=0; i<nr_srcfiles; i++)
+		mybuf[i] = argv[3+i];
+
+	key = (char)atoi(argv[2]);
+
+	merge(dst, mybuf, nr_srcfiles, key);
+	printf("merge done\n");
+
+	return 0;
+}
+

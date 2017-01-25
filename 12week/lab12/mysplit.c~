@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+int decode(FILE *r, FILE *w, int key)
+{
+	int i;
+	char read[128];
+	int fsize=0;
+
+	printf("input key (one byte): 0x%X\n",key);
+	
+	while(1){
+		fread(read, 1, 1, r);
+		if(feof(r))
+			break;
+		++fsize;
+		read[0]^=key;
+		fwrite(read, 1, 1, w);
+	}
+	printf("test\n");
+	return fsize;
+}
+
+void split(char *dst)
+{
+	struct stat st;
+	int i;
+	FILE *r, *w;
+	char read[100];
+	char *tmp="a";
+	int a;
+
+	for(i=0; i<6; i++){
+		stat(dst, &st);
+		printf("[%d]: %ld\n",i ,st.st_size);
+
+		/*r=fopen(dst, "r");
+		w=fopen(tmp, "wa");
+		while(1){
+			fread(read, 1, 1, r);
+			if(feof(r))
+				break;
+			fwrite(read, 1, 1, w);
+		}*/
+	}
+
+}
+void myopen(FILE **w, char *a)
+{
+	*w=fopen(a,"wa");
+}
+int main (int argc, char** argv)
+{
+	FILE* fsrc = NULL;
+	unsigned char** buf = NULL;
+	char fname[10][256];
+	int* fsize;
+	int ret, nr_srcfiles, i;
+	char key;
+	FILE* w;
+
+	/* check arguments */
+	if (argc != 3) {
+		printf ("usage: mysplit src key\n");
+		exit (-1);
+	}
+	myopen(&argv[1], argv[1]);
+
+	key = (char)atoi(argv[2]);
+
+	w=fopen("tmp.dat", "wa");
+	decode(argv[1], w, key);
+	split("tmp.dat");
+	printf("split is done\n");
+	return 0;
+}
+
